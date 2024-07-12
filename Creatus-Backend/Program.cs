@@ -8,6 +8,7 @@ using creatus_backend.Services;
 using creatus_backend.Repository.Implementation;
 using creatus_backend.config;
 using creatus_backend.Services.Implementation;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,7 +21,6 @@ builder.Services.AddTransient<IUserService, UserService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 
-// Configuração da autenticação JWT
 var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]);
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -37,34 +37,57 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
     builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
-
-// Configuração dos controllers
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("RequireLevel4", policy =>
+        policy.RequireAssertion(context =>
+            context.User.HasClaim(c => c.Type == "level" && int.Parse(c.Value) >= 4)));
+});
 builder.Services.AddControllers();
 
-// Configuração do Swagger
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Your API", Version = "v1" });
+
+    // Configure the authentication scheme with JWT bearer
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        In = ParameterLocation.Header,
+        Description = "Please insert JWT with Bearer into field",
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] { }
+        }
+    });
+});
 
 var app = builder.Build();
 
-// Middleware para Swagger UI (apenas em ambiente de desenvolvimento)
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-// Middleware para redirecionamento HTTPS
 app.UseHttpsRedirection();
 
-// Middleware de autenticação
 app.UseAuthentication();
 
-// Middleware de autorização
 app.UseAuthorization();
 
-// Mapeamento dos controllers
 app.MapControllers();
 
-// Execução da aplicação
 app.Run();

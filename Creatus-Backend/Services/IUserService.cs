@@ -10,5 +10,6 @@ namespace creatus_backend.Services
         Task<UserResponse> UpdateUser(int id, UserRequest userRequest);
         Task DeleteUser(int id);
         bool VerifyPassword(string password, string hash);
+        void GeneratePdfReport();
     }
 }

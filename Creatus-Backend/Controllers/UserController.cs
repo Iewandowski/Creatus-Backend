@@ -5,6 +5,7 @@ using creatus_backend.Exceptions;
 using creatus_backend.Services;
 using System;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 namespace creatus_backend.Controllers
 {
@@ -91,6 +92,22 @@ namespace creatus_backend.Controllers
             catch (Exception e)
             {
                 return NotFound(new { message = e.Message });
+            }
+        }
+
+        [Authorize]
+        [HttpGet("report")]
+        [Authorize(Policy = "RequireLevel4")]
+        public async Task<IActionResult> GenerateReport()
+        {
+             try
+            {
+                _userService.GeneratePdfReport();
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { message = "Erro ao gerar relatório PDF", error = e.Message });
             }
         }
     }

@@ -1,13 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using creatus_backend.Dtos.Request;
 using creatus_backend.Dtos.Response;
 using creatus_backend.Exceptions;
 using creatus_backend.Models;
 using creatus_backend.Repository;
-using creatus_backend.Services;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
 
 namespace creatus_backend.Services
 {
@@ -129,6 +127,41 @@ namespace creatus_backend.Services
         public bool VerifyPassword(string password, string hash)
         {
             return BCrypt.Net.BCrypt.Verify(password, hash);
+        }
+
+         public async void GeneratePdfReport()
+        {
+            try {
+                var users = await _userRepository.GetAllUsers();
+                QuestPDF.Settings.License = LicenseType.Community;
+
+                Document.Create(container =>
+                {
+                    container.Page(page =>
+                    {
+                        page.Size(PageSizes.A4);
+                        page.Header()
+                            .PaddingVertical(2, Unit.Centimetre)
+                            .PaddingHorizontal(3, Unit.Centimetre)
+                            .Text("Hello Creatus!")
+                            .SemiBold().FontSize(30).FontColor(Colors.Red.Medium);
+
+                        page.Content()
+                            .PaddingVertical(1, Unit.Centimetre)
+                            .PaddingHorizontal(3, Unit.Centimetre)
+                            .Column(x =>
+                            {
+                                foreach (var user in users) 
+                                {
+                                x.Item().Text($"ID: {user.Id}, Name: {user.Name}, Email: {user.Email}, Level: {user.Level}");
+                                }
+                            });
+                    });
+
+                }).GeneratePdf("users.pdf");
+            } catch (Exception e ) {
+                throw new PdfGenerationException("Erro ao gerar pdf", e);
+            }
         }
     }
 }
