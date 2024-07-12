@@ -18,5 +18,15 @@ Para executar este projeto localmente, siga os passos abaixo:
    ```bash
    git clone https://github.com/Iewandowski/Creatus-Backend.git
 2. Navegue até o diretório do projeto:
-  ```bash
-   cd .\Creatus-Backend\
+     ```bash
+      cd .\Creatus-Backend\
+3. Instale as dependências:
+   ```bash
+      dotnet restore
+4. Execute as migrações do banco de dados:
+   ```bash
+      dotnet ef database update
+5. Inicie o servidor de desenvolvimento:
+   ```bash
+      dotnet run
+*A documentação swagger estará disponível em http://localhost:5240/swagger/index.html*
