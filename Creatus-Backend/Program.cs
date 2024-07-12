@@ -6,6 +6,8 @@ using creatus_backend.Data;
 using creatus_backend.Repository;
 using creatus_backend.Services;
 using creatus_backend.Repository.Implementation;
+using creatus_backend.config;
+using creatus_backend.Services.Implementation;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +17,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddTransient<IUserRepository, UserRepository>();
 builder.Services.AddTransient<IUserService, UserService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IJwtService, JwtService>();
 
 // Configuração da autenticação JWT
 var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]);
@@ -32,6 +36,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(key)
         };
     });
+    builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 
 // Configuração dos controllers
 builder.Services.AddControllers();

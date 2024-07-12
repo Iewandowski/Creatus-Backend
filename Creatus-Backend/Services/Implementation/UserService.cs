@@ -56,6 +56,7 @@ namespace creatus_backend.Services
             {
                 throw new UserMissingFieldException("O campo Password é obrigatório.");
             }
+            var passwordHash = HashPassword(userRequest.Password);
             if (userRequest.Level == null) {
                 throw new UserMissingFieldException("O campo Level é obrigatório.");
             }
@@ -64,7 +65,7 @@ namespace creatus_backend.Services
             {
                 Name = userRequest.Name,
                 Email = userRequest.Email,
-                Password = userRequest.Password,
+                Password = passwordHash,
                 Level = (int)userRequest.Level
             };
 
@@ -118,6 +119,16 @@ namespace creatus_backend.Services
         private async Task<User?> GetUserByEmail(string email)
         {
             return await _userRepository.GetByEmail(email);
+        }
+
+        private string HashPassword(string password)
+        {
+            return BCrypt.Net.BCrypt.HashPassword(password);
+        }
+
+        public bool VerifyPassword(string password, string hash)
+        {
+            return BCrypt.Net.BCrypt.Verify(password, hash);
         }
     }
 }
