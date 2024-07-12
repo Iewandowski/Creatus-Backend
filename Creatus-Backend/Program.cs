@@ -3,13 +3,20 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using creatus_backend.Data;
+using creatus_backend.Repository;
+using creatus_backend.Services;
+using creatus_backend.Repository.Implementation;
 
 var builder = WebApplication.CreateBuilder(args);
-// Configure Entity Framework with SQLite
+
+// Configuração do DbContext com SQLite
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite("Data Source=app.db"));
 
-// Configure JWT Authentication
+builder.Services.AddTransient<IUserRepository, UserRepository>();
+builder.Services.AddTransient<IUserService, UserService>();
+
+// Configuração da autenticação JWT
 var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]);
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -26,26 +33,33 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-// Add services to the container.
-
+// Configuração dos controllers
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
+// Configuração do Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Middleware para Swagger UI (apenas em ambiente de desenvolvimento)
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
+// Middleware para redirecionamento HTTPS
 app.UseHttpsRedirection();
 
+// Middleware de autenticação
+app.UseAuthentication();
+
+// Middleware de autorização
 app.UseAuthorization();
 
+// Mapeamento dos controllers
 app.MapControllers();
 
+// Execução da aplicação
 app.Run();
