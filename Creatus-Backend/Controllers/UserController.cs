@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 namespace creatus_backend.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("users")]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
@@ -96,7 +96,7 @@ namespace creatus_backend.Controllers
         }
 
         [Authorize]
-        [HttpGet("report")]
+        [HttpGet("/report")]
         [Authorize(Policy = "RequireLevel4")]
         public IActionResult GenerateReport()
         {

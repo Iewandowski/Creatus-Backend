@@ -5,7 +5,7 @@ using creatus_backend.Services;
 namespace creatus_backend.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("login")]
     public class AuthController : ControllerBase
     {
         private readonly ILogger<AuthController> _logger;
@@ -19,7 +19,7 @@ namespace creatus_backend.Controllers
             _jwtService = jwtService;
         }
 
-        [HttpPost("login")]
+        [HttpPost]
         public async Task<IActionResult> Login([FromBody] LoginRequest loginRequest)
         {
             if (!ModelState.IsValid)
