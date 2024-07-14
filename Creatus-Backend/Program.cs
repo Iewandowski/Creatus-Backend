@@ -9,6 +9,7 @@ using creatus_backend.Repository.Implementation;
 using creatus_backend.config;
 using creatus_backend.Services.Implementation;
 using Microsoft.OpenApi.Models;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,8 +36,23 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(key)
         };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnChallenge = context =>
+            {
+                // Suprimir o comportamento padrão do OnChallenge
+                context.HandleResponse();
+                // Definir o status code e a mensagem personalizada
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                context.Response.ContentType = "application/json";
+                var result = JsonSerializer.Serialize(new { message = "Usuário precisa realizar login" });
+                return context.Response.WriteAsync(result);
+            }
+        };
     });
-    builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
+    
+builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("RequireLevel4", policy =>
@@ -75,6 +91,18 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+
+app.Use(async (context, next) =>
+{
+    await next();
+
+    if (context.Response.StatusCode == StatusCodes.Status403Forbidden)
+    {
+        context.Response.ContentType = "application/json";
+        var result = JsonSerializer.Serialize(new { message = "Usuário não permitido" });
+        await context.Response.WriteAsync(result);
+    }
+});
 
 if (app.Environment.IsDevelopment())
 {
