@@ -22,7 +22,13 @@ builder.Services.AddTransient<IUserService, UserService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 
-var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]);
+var jwtKey = builder.Configuration["Jwt:Key"];
+if (string.IsNullOrEmpty(jwtKey))
+{
+    throw new InvalidOperationException("JWT Key is not configured.");
+}
+
+var key = Encoding.ASCII.GetBytes(jwtKey);
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {

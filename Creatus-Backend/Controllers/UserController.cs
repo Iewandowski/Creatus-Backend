@@ -98,7 +98,7 @@ namespace creatus_backend.Controllers
         [Authorize]
         [HttpGet("report")]
         [Authorize(Policy = "RequireLevel4")]
-        public async Task<IActionResult> GenerateReport()
+        public IActionResult GenerateReport()
         {
              try
             {
