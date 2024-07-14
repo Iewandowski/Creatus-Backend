@@ -30,3 +30,5 @@ Para executar este projeto localmente, siga os passos abaixo:
    ```bash
       dotnet run
 *A documentação swagger estará disponível em http://localhost:5240/swagger/index.html*
+
+6. Ao chamar a rota */users/report* o arquivo .pdf estará salvo como users.pdf em .\Creatus-Backend\
